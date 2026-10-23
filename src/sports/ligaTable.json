@@ -1,0 +1,21 @@
+{
+  "snapshotDate": "2026-10-10",
+  "competition": "ליגת העל",
+  "note": "snapshot מקומי של טבלת ליגת העל — משמש כברירת מחדל כשאין מפתח Football API",
+  "teams": [
+    { "name": "מכבי תל אביב", "aliases": ["מכבי ת\"א", "Maccabi Tel Aviv"], "position": 1, "played": 8, "points": 20, "goalDifference": 12 },
+    { "name": "הפועל באר שבע", "aliases": ["הפועל ב\"ש", "Hapoel Be'er Sheva"], "position": 2, "played": 8, "points": 18, "goalDifference": 10 },
+    { "name": "מכבי חיפה", "aliases": ["Maccabi Haifa"], "position": 3, "played": 8, "points": 17, "goalDifference": 8 },
+    { "name": "בית\"ר ירושלים", "aliases": ["בית\"ר", "Beitar Jerusalem"], "position": 4, "played": 8, "points": 15, "goalDifference": 5 },
+    { "name": "מכבי נתניה", "aliases": ["Maccabi Netanya"], "position": 5, "played": 8, "points": 13, "goalDifference": 2 },
+    { "name": "הפועל תל אביב", "aliases": ["הפועל ת\"א", "Hapoel Tel Aviv"], "position": 6, "played": 8, "points": 12, "goalDifference": 1 },
+    { "name": "הפועל חיפה", "aliases": ["Hapoel Haifa"], "position": 7, "played": 8, "points": 11, "goalDifference": 0 },
+    { "name": "מכבי פתח תקווה", "aliases": ["מכבי פ\"ת", "Maccabi Petah Tikva"], "position": 8, "played": 8, "points": 10, "goalDifference": -1 },
+    { "name": "בני סכנין", "aliases": ["Bnei Sakhnin"], "position": 9, "played": 8, "points": 9, "goalDifference": -2 },
+    { "name": "עירוני קריית שמונה", "aliases": ["קריית שמונה", "Ironi Kiryat Shmona"], "position": 10, "played": 8, "points": 9, "goalDifference": -3 },
+    { "name": "מ.ס. אשדוד", "aliases": ["אשדוד", "FC Ashdod"], "position": 11, "played": 8, "points": 8, "goalDifference": -4 },
+    { "name": "מכבי בני ריינה", "aliases": ["בני ריינה", "Bnei Reineh"], "position": 12, "played": 8, "points": 7, "goalDifference": -5 },
+    { "name": "הפועל חדרה", "aliases": ["Hapoel Hadera"], "position": 13, "played": 8, "points": 5, "goalDifference": -8 },
+    { "name": "עירוני טבריה", "aliases": ["טבריה", "Ironi Tiberias"], "position": 14, "played": 8, "points": 4, "goalDifference": -11 }
+  ]
+}

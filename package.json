@@ -1,0 +1,33 @@
+{
+  "name": "tv-recommender",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "סורק EPG חכם ל-IPTV בישראל — ממליץ על סרטים, סדרות, ספורט וחדשות בעברית",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "android:sync": "npm run build && cap sync android",
+    "android:apk": "npm run android:sync && cd android && .\\gradlew.bat assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.2",
+    "@capacitor/app": "^7.1.2",
+    "@capacitor/core": "^7.4.2",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.2",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.2",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.5",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- נוצר אוטומטית מ-make_icon.py — אין לערוך ידנית. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <path
+        android:pathData="M92,42 L228,42 A16,16 0 0 1 244,58 L244,120 A16,16 0 0 1 228,136 L92,136 A16,16 0 0 1 76,120 L76,58 A16,16 0 0 1 92,42 Z"
+        android:fillColor="#16224E"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="9" />
+    <path
+        android:pathData="M128,66 L128,120 L184,93 Z"
+        android:fillColor="#5B8CFF" />
+    <path
+        android:pathData="M139,136 L153,136 A3,3 0 0 1 156,139 L156,143 A3,3 0 0 1 153,146 L139,146 A3,3 0 0 1 136,143 L136,139 A3,3 0 0 1 139,136 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M179,136 L193,136 A3,3 0 0 1 196,139 L196,143 A3,3 0 0 1 193,146 L179,146 A3,3 0 0 1 176,143 L176,139 A3,3 0 0 1 179,136 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M200,48 a22,22 0 1,0 44,0 a22,22 0 1,0 -44,0 Z"
+        android:fillColor="#0B1020" />
+    <path
+        android:pathData="M222.0,31.5 L226.291,42.094 L237.692,42.901 L228.943,50.256 L231.698,61.349 L222.0,55.3 L212.302,61.349 L215.057,50.256 L206.308,42.901 L217.709,42.094 Z"
+        android:fillColor="#FFC542" />
+    <path
+        android:pathData="M86,122 a20,20 0 1,0 40,0 a20,20 0 1,0 -40,0 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M106.0,114.0 L113.608,119.528 L110.702,128.472 L101.298,128.472 L98.392,119.528 Z"
+        android:fillColor="#16224E" />
+</vector>

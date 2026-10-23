@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- באנר לשורת היישומים ב-Android TV (320x180dp). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="45"
+                android:endColor="#212C56"
+                android:startColor="#0B1020"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item android:drawable="@drawable/tv_banner_art" />
+</layer-list>

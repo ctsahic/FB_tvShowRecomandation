@@ -1,0 +1,1405 @@
+/* ------------------------------------------------------------------ */
+/* ערכת נושא לטלוויזיה: כהה, ניגודיות גבוהה, גדלים גדולים (10-foot UI) */
+/* ------------------------------------------------------------------ */
+
+:root {
+  --bg: #0b1020;
+  --bg-soft: #131a30;
+  --card: #182041;
+  --card-hi: #212c56;
+  --fg: #eef2ff;
+  --muted: #9aa6c8;
+  --accent: #5b8cff;
+  --accent-2: #22d3a6;
+  --warn: #f5b942;
+  --bad: #f2685f;
+  --fav: #ffcc4d;
+  --radius: 18px;
+  --shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  font-size: clamp(15px, 0.55vw + 12px, 21px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background:
+    radial-gradient(1200px 700px at 85% -10%, #1c2a55 0%, transparent 60%),
+    radial-gradient(900px 600px at 5% 110%, #14324a 0%, transparent 55%),
+    var(--bg);
+  color: var(--fg);
+  font-family: 'Segoe UI', 'Arial Hebrew', 'Noto Sans Hebrew', Rubik, Arial,
+    'Helvetica Neue', sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* ---------------------------- focus / d-pad ---------------------------- */
+
+/*
+ * הסימון של השלט. בטלוויזיה אין עכבר — הרכיב שבפוקוס חייב להיות ברור מכל
+ * מרחק צפייה. חשוב: לא מסתמכים כאן על :focus-visible בלבד, כי ב-WebView
+ * ישן (טלוויזיות שלא מתעדכנות) סלקטור שאינו מוכר מבטל את כל הרשימה שלו,
+ * ואז לא נשאר סימון בכלל. לכן כלל נפרד על :focus.
+ * ההגדרה הזו גם עוזרת ל-WebView הישן של Skyworth, שבו .focus() תוכניתי
+ * לא תמיד נחשב "מקלדת" לצורך :focus-visible.
+ */
+button:focus,
+a:focus,
+input:focus,
+select:focus,
+textarea:focus,
+[tabindex]:focus,
+.focusable:focus {
+  outline: 4px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius);
+}
+
+:focus-visible {
+  outline: 4px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.card:focus,
+.card:focus-within {
+  border-color: var(--accent);
+  background: var(--card-hi);
+  transform: translateY(-2px) scale(1.015);
+}
+
+/* ------------------------------- shell -------------------------------- */
+
+.app {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  /* שוליים במידת overscan של טלוויזיות: ~4% מהצדדים, ~3% למעלה/למטה. */
+  padding: 3vh 4vw 5vh;
+}
+
+.app__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  justify-content: space-between;
+}
+
+/* -------------------------------- clock -------------------------------- */
+
+/*
+ * השעון הקבוע שבפינה הימנית העליונה.
+ *
+ * fixed ולא sticky: הוא נשאר על המסך בכל גלילה — גם אחרי שהכותרת עצמה כבר
+ * יצאה מלמעלה. כותרת דביקה הייתה גוררת איתה את כל הכפתורים ותופסת גובה יקר
+ * במסך הטלוויזיה; השעון לבדו קטן ולא מפריע.
+ *
+ * pointer-events: none — הוא לא חוטף לחיצות או גלגלת מתחתיו, ובלי tabIndex
+ * (אין כאן שום דבר לפוקוס) גם השלט ממשיך לעבור בין הכרטיסים בלי לעצור עליו.
+ *
+ * right ולא inset-inline-end: הממשק עברי (RTL), אבל המכשירים הישנים של
+ * הטלוויזיה לא מכירים את המאפיינים הלוגיים — וכאן הימני הוא גם הימני הפיזי.
+ */
+.clock {
+  position: fixed;
+  top: max(0.45rem, 1.4vh);
+  right: max(0.6rem, 2vw);
+  z-index: 15;
+  min-width: var(--clock-w, 7.4rem);
+  padding: 0.15rem 0.75rem;
+  border: 1px solid #2b3763;
+  border-radius: 999px;
+  background: #0b1026f2;
+  box-shadow: var(--shadow);
+  color: var(--fg);
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  /* השעות תמיד משמאל לימין, גם בתוך ממשק עברי. */
+  direction: ltr;
+  pointer-events: none;
+  user-select: none;
+}
+
+/*
+ * צל-הדרגה מאחורי השעון: התוכן שגולל מתחתיו נמוג בהדרגה לתוך הרקע במקום
+ * להיחתך בפתאומיות על שפת הכדור. זה מה שהופך אותו מ"כרטיס שמסתיר כותרת"
+ * ל-HUD מכוון.
+ */
+.clock::before {
+  content: '';
+  position: absolute;
+  inset: -0.55rem -1.3rem -1rem -3.4rem;
+  z-index: -1;
+  border-radius: 1.4rem;
+  background: radial-gradient(
+    ellipse 70% 60% at 80% 45%,
+    rgba(11, 16, 32, 0.94),
+    rgba(11, 16, 32, 0) 78%
+  );
+  pointer-events: none;
+}
+
+.app--clock {
+  --clock-w: 7.4rem;
+}
+
+/*
+ * המקום שהשעון תופס בכותרת. בלעדיו הוא היה מכסה את הכותרת עצמה, כי גם היא
+ * יושבת בפינה הימנית (RTL). הכותרת מתחילה משמאל לשעון, וזה הכל.
+ */
+.app--clock .app__header {
+  padding-right: calc(var(--clock-w, 7.4rem) + 0.9rem);
+}
+
+/*
+ * מסך טלוויזיה ב-Android TV הוא כ-960x540 נקודות CSS (DPR 2). כל פיקסל
+ * אנכי יקר, ולכן במסכים נמוכים מקצרים את הכותרת: בלי תת-כותרת, עם
+ * כותרת קטנה יותר — כדי שההמלצה הראשונה תהיה גלויה מיד בלי גלילה.
+ */
+@media (max-height: 700px) {
+  .app__subtitle {
+    display: none;
+  }
+
+  .app__title {
+    font-size: 1.55rem;
+  }
+}
+
+.app__brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.app__title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* מספר הגרסה של מה שמותקן — קטן ומעומעם, אבל תמיד על המסך. */
+.app__version {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.app__subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.app__actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.app__status {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.app__status--line {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app__main {
+  flex: 1;
+}
+
+/* ------------------------------- buttons ------------------------------- */
+
+.btn {
+  border: 2px solid transparent;
+  background: var(--card);
+  color: var(--fg);
+  border-radius: 999px;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+}
+
+.btn:hover {
+  background: var(--card-hi);
+}
+
+.btn--primary {
+  background: linear-gradient(135deg, var(--accent), #7a6cff);
+  color: #050a18;
+}
+
+.btn--primary:hover {
+  filter: brightness(1.1);
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: #2b3763;
+}
+
+.btn--active {
+  background: var(--accent);
+  color: #050a18;
+}
+
+.btn--fav {
+  border-color: var(--fav);
+  color: var(--fav);
+}
+
+.btn--small {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.82rem;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* -------------------------------- tabs -------------------------------- */
+
+.tabs {
+  display: flex;
+  /* שורה אחת בלבד: בעטיפה לשתי שורות הכפתור האחרון "ברח" למטה, וזה גם
+     בזבז גובה מסך יקר בטלוויזיה. */
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  padding: 0.3rem;
+  background: rgba(10, 16, 34, 0.6);
+  border: 1px solid #26325c;
+  border-radius: 999px;
+  align-self: flex-start;
+}
+
+.tabs .tab {
+  padding: 0.45rem 0.8rem;
+  font-size: 0.92rem;
+  white-space: nowrap;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.tab__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.6rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: #2b3763;
+  color: var(--fg);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.tab--active .tab__count {
+  background: rgba(5, 10, 24, 0.35);
+  color: #050a18;
+}
+
+/* ------------------------------- banners ------------------------------ */
+
+.banner {
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+  border: 1px solid #2b3763;
+  background: rgba(19, 26, 48, 0.9);
+  font-size: 0.9rem;
+}
+
+/* אזהרות כ"שורת מידע" אחת — כדי שלא יאכלו את המסך בטלוויזיה. */
+.banner--compact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.6rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.banner__label {
+  font-weight: 700;
+}
+
+.banner__item:not(:last-child)::after {
+  content: ' · ';
+  color: #b9a06a;
+}
+
+.banner--warn {
+  border-color: #6a5320;
+  color: #ffe1a8;
+}
+
+.banner--error {
+  border-color: #6d2f2b;
+  color: #ffc9c4;
+}
+
+.banner ul {
+  margin: 0.35rem 0 0;
+  padding-inline-start: 1.2rem;
+}
+
+/* -------------------------------- grid -------------------------------- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(27rem, 1fr));
+  gap: 0.8rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* -------------------------------- card -------------------------------- */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* ריווח מהודק: כל שמינייה של פיקסלים כפול מספר הכרטיסים במסך. */
+  gap: 0.4rem;
+  padding: 0.75rem 0.9rem;
+  background: var(--card);
+  border: 2px solid #232d52;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+/* כרטיס שכל כולו לחיץ — כרטיס משחק, שנפתח למסך הפרטים בלחיצה עליו
+   וב-OK בשלט. סמן העכבר מבהיר שהכרטיס עצמו הוא הכפתור. */
+.card--actionable {
+  cursor: pointer;
+}
+
+.card__top {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+/* הטור שליד הפוסטר: כותרת, תגים וציונים — בלי לחרוג מרוחב הכרטיס. */
+.card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.poster {
+  flex: 0 0 auto;
+  width: 4.8rem;
+  height: 7rem;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #0e1430;
+  border: 1px solid #2b3763;
+}
+
+.card__headline {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.card__title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.card__verdict {
+  margin: 0;
+  color: #d7e0ff;
+  font-size: 0.95rem;
+}
+
+.card__overview {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  /*
+   * שלוש שורות: מספיק כדי להבין על מה הסרט, בלי לדחוף את שאר הכרטיס אל
+   * מחוץ למסך. את הטקסט עצמו לא מקצרים — פשוט לא מציירים יותר משלוש שורות.
+   */
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/*
+ * שורת הציונים — כל הציונים של הכותר במקום אחד: IMDb ראשי ומודגש, ולצידו
+ * TMDB ו-RT עם מספר המדרגים. צ'יפים ולא טקסט חופשי, כדי שאפשר יהיה לסרוק
+ * אותם בעין בשורה אחת.
+ */
+.ratings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.rating {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  background: #16305a;
+  color: #cfe0ff;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+/* הציון הראשי (IMDb, ואם אין — TMDB): גדול וצבעוני יותר, כי הוא המספר שקובע. */
+.rating--primary {
+  background: #123a2c;
+  border: 1px solid #2f6b55;
+  color: #7ff0c4;
+  font-size: 0.95rem;
+  padding: 0.16rem 0.7rem;
+}
+
+.rating__source {
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.rating__value {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* מספר המדרגים — קטן יותר, כי הוא הקשר לציון ולא הציון עצמו. */
+.rating__votes {
+  font-size: 0.72rem;
+  color: #9aa6c8;
+}
+
+.rating--primary .rating__votes {
+  color: #9fd8c2;
+}
+
+/* -------------------------------- chips ------------------------------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.65rem;
+  border-radius: 999px;
+  background: #26325c;
+  color: #d9e2ff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip--live {
+  background: #b3261e;
+  color: #fff;
+}
+
+.chip--soon {
+  background: #8a5a00;
+  color: #fff;
+}
+
+.chip--upcoming {
+  background: #24406b;
+  color: #cfe0ff;
+}
+
+.chip--fav {
+  background: var(--fav);
+  color: #3a2a00;
+}
+
+.chip--team {
+  background: linear-gradient(135deg, #c62828, #ef5350);
+  color: #fff;
+}
+
+.chip--derby {
+  background: linear-gradient(135deg, #ff8a3d, #f43f5e);
+  color: #1b0505;
+}
+
+/*
+ * המפריד בתג המאוחד של הספורט: מצב השידור מצד אחד, שעות השידור מצד שני.
+ * צבע שקוף-למחצה כדי להפריד חזותית בלי למשוך את העין לעצמו.
+ */
+.chip__sep {
+  opacity: 0.55;
+  font-weight: 400;
+  padding: 0 0.15rem;
+}
+
+/*
+ * סוג האירוע (כדורגל / כדורסל / הוקי…) — מודגש וצבעוני כדי שבולט מיד.
+ *
+ * ברירת המחדל (כדורגל וכל השאר) היא סגול-כחול. כדורסל וטניס מקבלים גוון
+ * משלהם כדי שאפשר יהיה להבדיל ביניהם במבט אחד ברשימה — בלי לצאת מהפלטה
+ * של סגול, כחול וירוק-כחול.
+ */
+.chip--event {
+  background: linear-gradient(135deg, #7c3aed, #2563eb);
+  color: #fff;
+  border: 1px solid #a78bfa;
+}
+
+/* כדורסל: ירוק -> ירוק-כחול. */
+.chip--event-basketball {
+  background: linear-gradient(135deg, #22c55e, #0891b2);
+  border-color: #6ee7b7;
+}
+
+/* טניס: סגול -> ירוק-כחול בהיר. */
+.chip--event-tennis {
+  background: linear-gradient(135deg, #8b5cf6, #2dd4bf);
+  border-color: #c4b5fd;
+}
+
+/* שם הערוץ במסך הפרטים — הנתון שמחפשים לפני שמדליקים. */
+.chip--channel {
+  background: linear-gradient(135deg, #facc15, #f97316);
+  color: #1c1206;
+  font-weight: 700;
+}
+
+/* ------------------------------- score -------------------------------- */
+
+.score {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 12rem;
+}
+
+.score__label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.score__value {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.score__bar {
+  flex: 1;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: #222c50;
+  overflow: hidden;
+}
+
+.score__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+/* ------------------------------ reasons ------------------------------- */
+
+.reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reason {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  font-size: 0.88rem;
+  color: #c9d4f7;
+}
+
+.reason::before {
+  content: '•';
+  color: var(--accent-2);
+  font-weight: 800;
+}
+
+.reason--favorite {
+  color: var(--fav);
+  font-weight: 700;
+}
+
+.reason--negative {
+  color: #ffb4ad;
+}
+
+/* ------------------------------- sport -------------------------------- */
+
+.match__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+/*
+ * שורת הכותרת של משחק: שם הקבוצות (במקום שבו עמדה הכותרת "משחק גדול")
+ * ולצידו השעות והערוץ.
+ *
+ * שם הקבוצות הוא תמיד השורה הראשונה. שם קצר יושב באותה שורה עם השעות,
+ * ושם ארוך לא נדחס ולא נשבר: השעות והערוץ יורדים מתחתיו (wrap רגיל ולא
+ * wrap-reverse, שהפך את הסדר והעלה את השעות מעל השם).
+ */
+.match__header--title {
+  flex-wrap: wrap;
+}
+
+/*
+ * כשהשעות יורדות לשורה משל עצמן הן נצמדות לשמאל — שם יש מקום פנוי לאורך
+ * כל השורה, ובצד ימין נשאר השם. זה גם מה שמשאיר את השם בראש הכרטיס.
+ */
+.match__header--title .card__meta {
+  margin-inline-start: auto;
+}
+
+.match__title {
+  flex: 0 1 auto;
+  /*
+   * שם קצר נשאר באותה שורה עם השעות והערוץ; שם ארוך *לא* נשבר לשתי
+   * שורות צרות אלא יורד שורה שלמה משלו. min-content הוא בדיוק הקו הזה:
+   * הרכיב לא מתכווץ מתחת לשורה אחת שלמה של השם.
+   */
+  min-width: min-content;
+}
+
+.match__teams {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.team-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.45rem 0.7rem;
+  border-radius: 12px;
+  background: rgba(10, 16, 34, 0.55);
+  border: 1px solid #26325c;
+}
+
+.team-row--favorite {
+  border-color: var(--fav);
+  background: rgba(80, 62, 10, 0.35);
+}
+
+.team-row__name {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+/*
+ * דגל המדינה/המפעל של הליגה — פעם אחת, בתוך תג המסגרת ("🇮🇱 כדורגל · ליגת העל").
+ * התג כבר ממורכז ב-flex עם gap, ולכן הדגל לא צריך רווח משלו — הוא רק
+ * רמז חזותי קטן, ולא נתון שדוחק את שם המסגרת.
+ */
+.flag {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 1.15em;
+  height: 0.82em;
+  object-fit: cover;
+  border-radius: 2px;
+  font-size: 1em;
+  line-height: 0.82;
+  text-align: center;
+}
+
+.team-row__side {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin-inline-start: 0.4rem;
+}
+
+.team-row__rank {
+  color: #cfe0ff;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* --------------------------- מסך פרטי משחק --------------------------- */
+
+/* החלון רחב יותר מחלון ההגדרות כי הטבלה צריכה להיכנס בלי גלילה אופקית. */
+.panel--match {
+  width: min(72rem, 100%);
+}
+
+.match-detail__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.match-detail__teams {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.detail-teams {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.7rem;
+}
+
+.detail-team {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #2b3763;
+  border-radius: 12px;
+  background: rgba(15, 21, 48, 0.85);
+}
+
+.detail-team__name {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.detail-team__en {
+  font-size: 0.8rem;
+  color: var(--muted);
+  direction: ltr;
+}
+
+.detail-team__rank {
+  color: #cfe0ff;
+  font-weight: 700;
+}
+
+.detail-team__detail {
+  font-size: 0.85rem;
+  color: #c9d4f7;
+}
+
+.chip--zone {
+  border-color: #3c5bbf;
+  color: #dbe6ff;
+}
+
+/*
+ * טבלת הליגה במסך הפרטים. רוחב הקבוצה מתכווץ כדי שכל העמודות ייכנסו
+ * במסך של טלוויזיה, והשורות שמשחקות במשחק מודגשות ברקע כחול.
+ */
+.league-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.league-table th,
+.league-table td {
+  padding: 0.3rem 0.5rem;
+  text-align: start;
+  border-bottom: 1px solid #1e2947;
+  white-space: nowrap;
+}
+
+.league-table th {
+  color: #9fb0e6;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.league-table td:nth-child(2) {
+  white-space: normal;
+  min-width: 11rem;
+}
+
+.league-table__en {
+  color: var(--muted);
+  font-size: 0.78rem;
+  direction: ltr;
+}
+
+.league-table__zone {
+  display: inline-block;
+  margin-inline-start: 0.4rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: #1b2650;
+  color: #b9c8f5;
+  font-size: 0.7rem;
+}
+
+.league-table__row--hit td {
+  background: rgba(60, 91, 191, 0.28);
+  font-weight: 700;
+}
+
+/* ------------------------------- panel -------------------------------- */
+
+.panel-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 6, 16, 0.88);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 3vh 4vw;
+  overflow: auto;
+  z-index: 20;
+}
+
+.panel {
+  width: min(62rem, 100%);
+  background: var(--bg-soft);
+  border: 2px solid #2b3763;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.4rem;
+  /* RTL: העמודה הראשונה מימין — היא המסילה; התוכן משמאל לה, אבל
+     בסדר ה-DOM התוכן קודם לכן, ולכן המיקום מפורש. */
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.1rem;
+  align-items: start;
+}
+
+.panel__content {
+  grid-column: 2;
+  /* grid-row מפורש: בלעדיו המיקום האוטומטי דחק את המסילה לשורה שנייה,
+     כלומר לתחתית החלון — בדיוק מה שניסינו למנוע. */
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+/*
+ * מסילת הפעולות של החלון (שמור/ביטול/איפוס).
+ * היא נשארת דביקה למעלה ונמצאת משמאל לכל התוכן, ולכן לחיצת שמאלה אחת
+ * מהשלט מכל מקום בחלון — אפילו מתחתית רשימת 89 הערוצים — מגיעה לכפתור שמור.
+ */
+.panel__rail {
+  grid-column: 1;
+  grid-row: 1;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.6rem;
+  border: 1px solid #26325c;
+  border-radius: 14px;
+  background: rgba(11, 16, 38, 0.92);
+}
+
+.panel__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.panel__section {
+  border: 1px solid #26325c;
+  border-radius: 14px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.panel__section h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.panel__footer {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field__label {
+  font-size: 0.85rem;
+  color: #cdd8ff;
+  font-weight: 600;
+}
+
+.field__input,
+.field__select {
+  background: #0d1330;
+  border: 2px solid #2b3763;
+  border-radius: 10px;
+  color: var(--fg);
+  padding: 0.55rem 0.7rem;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.field__input:focus,
+.field__select:focus {
+  border-color: var(--accent);
+}
+
+.field__hint {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.8rem;
+}
+
+/* ------------------ choice buttons (settings, TV) ---------------------- */
+
+/* רשימת בחירה אנכית (סוג החיבור) — כפתורים במקום select, כדי שהחצים
+   יעבירו פוקוס ולא ישנו את הערך מאחורי הגב של המשתמש. */
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.choices__option {
+  text-align: start;
+  border-radius: 12px;
+  white-space: normal;
+}
+
+/* בחירה מרובה בשורה של צ׳יפים (ענפי ספורט) — נגללת לשורות במסך צר. */
+.choices--chips {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* --------------------- channel picker (settings) ----------------------- */
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.picker__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.picker__actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.picker__list {
+  max-height: 22rem;
+  overflow-y: auto;
+  border: 1px solid #26325c;
+  border-radius: 12px;
+  background: #0b1026;
+  padding: 0.35rem 0.5rem;
+}
+
+/*
+ * כותרת הקטגוריה היא שורת בחירה שלמה: תיבת סימון שבוחרת את כל ערוצי
+ * הקטגוריה, השם והמונה („3/12”). היא נדבקת לראש הרשימה בזמן גלילה, כדי
+ * שאפשר יהיה לבחור קטגוריה גם אחרי שעברו חצי מהערוצים שלה.
+ */
+.picker__group-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0.5rem -0.5rem 0.2rem;
+  padding: 0.25rem 0.5rem;
+  background: #0b1026;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.picker__group-head:hover {
+  background: var(--card-hi);
+}
+
+.picker__group-head:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.picker__group-head input {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.picker__group-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.picker__group-count {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.picker__row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.32rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.picker__row:hover {
+  background: var(--card-hi);
+}
+
+.picker__row:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.picker__row input {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.picker__number {
+  min-width: 2.1rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: #131a3a;
+  border-radius: 6px;
+  padding: 0.05rem 0.25rem;
+}
+
+.picker__name {
+  flex: 1;
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.92rem;
+}
+
+.switch input {
+  width: 1.3rem;
+  height: 1.3rem;
+  accent-color: var(--accent);
+}
+
+/* ------------------------------- empty -------------------------------- */
+
+/* ------------------------------------------------------------------ */
+/* באר ההתקדמות של הסריקה — מה קורה מאחורי הקלעים בזמן ההמתנה          */
+/* ------------------------------------------------------------------ */
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0.6rem 2rem 0.2rem;
+  padding: 0.9rem 1.2rem;
+  border-radius: var(--radius);
+  background: var(--bg-soft);
+  border: 1px solid #2a3560;
+}
+
+.progress__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.progress__label {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.progress__percent {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.progress__track {
+  height: 0.7rem;
+  border-radius: 999px;
+  background: #26325c;
+  overflow: hidden;
+}
+
+.progress__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.25s linear;
+}
+
+.progress__message {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #dbe3ff;
+}
+
+.progress__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress__time {
+  margin-inline-start: 0.25rem;
+}
+
+/* צ׳יפ הספירה לאחור — בולט במיוחד בגלל מספרי הגדול ובגלל שהוא מתעדכן חי. */
+.chip--count {
+  background: var(--accent);
+  color: #06122e;
+  font-size: 0.95rem;
+  padding: 0.3rem 0.8rem;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty .progress {
+  width: min(52rem, 88vw);
+  margin: 0.4rem 0 0;
+}
+
+.empty__title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.spinner {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: 4px solid #26325c;
+  border-top-color: var(--accent);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 3s;
+  }
+  .card {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* טלפון: מגע ואנכי — בלי לגעת במראה של הטלוויזיה                     */
+/* ------------------------------------------------------------------ */
+
+/*
+ * בטלוויזיה אין עכבר, ולכן טבעת הפוקוס יושבת על :focus. בטלפון אין שלט,
+ * וטבעת כחולה נשארת תלויה על כל כפתור שנוגעים בו — לכן אחרי נגיעה אחת
+ * מסתירים אותה, וכל לחיצת חץ (שלט או מקלדת) מחזירה את מצב הטלוויזיה.
+ * המחלקה הזו נדלקת רק אחרי pointerdown ולכן בטלוויזיה היא לעולם לא קיימת,
+ * והמראה שם נשאר זהה לחלוטין.
+ */
+html.touch-ui :focus {
+  outline: none;
+}
+
+/*
+ * טלפון באנכי. תנאי ה-min-height הוא מה שמבדיל בין השניים: מסך 16:9 שרוחבו
+ * עד 900px הוא בגובה ~510px, ולכן שום טלוויזיה לא נכנסת לבלוק הזה (וגם
+ * לא טלפון לרוחב) — רק טלפון אנכי. לכן המראה בטלוויזיה לא משתנה.
+ */
+@media (max-width: 900px) and (min-height: 700px) {
+  html {
+    /* אנדרואיד מצייר הבזק אפור על כל נגיעה — בטלוויזיה אין נגיעות. */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app {
+    /* אין overscan בטלפון: מצמצמים את השוליים ומרווחים את הרווחים. */
+    padding: 0.9rem 0.9rem 1.4rem;
+    gap: 0.55rem;
+  }
+
+  /* הכותרת והכפתורים אחד מתחת לשני, וכפתור ברוחב נוח לאצבע. */
+  .app__header {
+    align-items: stretch;
+  }
+
+  /* בטלפון השעון קטן יותר — שלא ידחק את הכותרת לשורה של מילה. */
+  .app--clock {
+    --clock-w: 6.2rem;
+  }
+
+  .clock {
+    font-size: 1rem;
+  }
+
+  .app__actions {
+    width: 100%;
+  }
+
+  .app__actions .btn {
+    flex: 1 1 auto;
+    min-height: 44px;
+  }
+
+  /* שורת הסיכום ארוכה — עדיף שתרד שורה מאשר שתיחתך באליפסיס. */
+  .app__status--line {
+    white-space: normal;
+    overflow: visible;
+  }
+
+  /* שש קטגוריות לא נכנסות לרוחב מסך טלפון — נגללות אופקית. */
+  .tabs {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tabs .tab {
+    min-height: 40px;
+    padding: 0.5rem 0.85rem;
+  }
+
+  .card__top {
+    gap: 0.6rem;
+  }
+
+  /* חלון ההגדרות: עמודה אחת — המסילה למעלה (דביקה), התוכן מתחתיה. */
+  .panel-backdrop {
+    padding: 0.6rem;
+  }
+
+  .panel {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 1rem;
+  }
+
+  .panel__rail {
+    grid-column: 1;
+    grid-row: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .panel__content {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  /* מתחת ל-16px דפדפנים במסך מגע מזומים את הדף כשנוגעים בשדה. */
+  .field__input,
+  .field__select {
+    font-size: 16px;
+  }
+}
